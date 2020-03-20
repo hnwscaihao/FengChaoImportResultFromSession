@@ -1199,7 +1199,8 @@ public class ExcelUtil {
 			List<String> newRelatedStepIds = new ArrayList<>();
 			// 1. 先处理Test
 			// Step信息(更新创建或删除)，遍历得到OPERATING_ACTION和EXPECTED_RESULTS信息塞入newTestCaseData中
-			if (testCaseData.containsKey(TEST_STEP)) {
+			if (false) {
+//			if (testCaseData.containsKey(TEST_STEP)) {
 				this.getTestStep(newTestCaseData, newRelatedStepIds, testCaseData, project, cmd, stepCreate,
 						stepCreateF, stepUpdate, stepUpdateF);
 				hasStep = true;
@@ -1214,7 +1215,8 @@ public class ExcelUtil {
 			String beforeId = null;// 涉及结构
 			String strucetureVal = null;
 			parentId = testSuiteID;
-			if (parentStructure) {
+			if (false) {
+//			if (parentStructure) {
 				strucetureVal = (String) testCaseData.get("Contained By");
 				beforeId = structureRecord.get(strucetureVal);
 				if ("C".equals(strucetureVal)) {

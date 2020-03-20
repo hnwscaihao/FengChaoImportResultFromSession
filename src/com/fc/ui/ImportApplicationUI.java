@@ -98,7 +98,8 @@ public class ImportApplicationUI extends JFrame {
 		try {
 			String host = ImportApplicationUI.ENVIRONMENTVAR.get(Constants.MKSSI_HOST);
 			if(host==null || host.length()==0) {
-				host = "10.101.13.44";
+//				host = "10.101.13.44";
+				host = "192.168.229.133";
 			}
 			String portStr = ENVIRONMENTVAR.get(Constants.MKSSI_PORT);
 			Integer port = portStr!=null && !"".equals(portStr)? Integer.valueOf(portStr) : 7001;
@@ -499,6 +500,7 @@ public class ImportApplicationUI extends JFrame {
 			} else {
 				try {
 					if (!cmd.docIDIsRight( testSuiteID, ExcelUtil.DOC_TYPE_MAP.get(importType)) ) {// 此处要修改，  判断类型
+//					if (!cmd.docIDIsRight( testSuiteID, "Test Session") ) {// 此处要修改，  判断类型
 						JOptionPane.showConfirmDialog(contentPane,
 								"Your input Test Suite ID is not correctly, Please Re-Input It!");
 						return;
