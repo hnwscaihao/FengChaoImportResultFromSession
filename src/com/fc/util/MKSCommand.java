@@ -816,28 +816,7 @@ public class MKSCommand {
 		}
 		return fieldTypeMap;
 	}
-	/**
-	 * Description 查询所有Projects
-	 * @return
-	 * @throws APIException
-	 */
-	public List<String> getProjects(String user) throws APIException{
-		List<String> projects = new ArrayList<String>();
-		Command cmd = new Command("im", "issues");
-		cmd.addOption(new Option("fields","Project"));
-		String query = "((field[Type]=Project) )";
-		cmd.addOption(new Option("queryDefinition",query));
-		Response res = mksCmdRunner.execute(cmd);
-		if (res != null) {
-			WorkItemIterator it = res.getWorkItems();
-			while (it.hasNext()) {
-				WorkItem wi = it.next();
-				String project = wi.getField("Project").getValueAsString();
-				projects.add(project);
-			}
-		}
-		return projects;
-	}
+	
 	/**
 	 * Description 获取所有Category
 	 * @return

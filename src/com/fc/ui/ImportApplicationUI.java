@@ -99,7 +99,7 @@ public class ImportApplicationUI extends JFrame {
 			String host = ImportApplicationUI.ENVIRONMENTVAR.get(Constants.MKSSI_HOST);
 			if(host==null || host.length()==0) {
 //				host = "10.101.13.44";
-				host = "192.168.229.133";
+				host = "192.168.6.130";
 			}
 			String portStr = ENVIRONMENTVAR.get(Constants.MKSSI_PORT);
 			Integer port = portStr!=null && !"".equals(portStr)? Integer.valueOf(portStr) : 7001;
@@ -141,7 +141,7 @@ public class ImportApplicationUI extends JFrame {
 	 */
 	public ImportApplicationUI() throws Exception {
 		
-		setTitle("Excel Import");
+		setTitle("Session Import Result");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 849, 416);
@@ -220,7 +220,7 @@ public class ImportApplicationUI extends JFrame {
 		lblImportType.setBounds(25, 40, 139, 24);
 		panel.add(lblImportType);
 
-		JLabel lblTestSuite = new JLabel("Document ID   :");
+		JLabel lblTestSuite = new JLabel("Session ID   :");
 		lblTestSuite.setBounds(25, 91, 139, 24);
 		panel.add(lblTestSuite);
 
@@ -256,19 +256,7 @@ public class ImportApplicationUI extends JFrame {
 		label_3.setForeground(Color.RED);
 		label_3.setBounds(25, 0, 480, 21);
 		panel.add(label_3);
-
-//		comboBox_1 = new JComboBox();
-//		comboBox_1.setBounds(25, 36, 123, 37);
-//		panel.add(comboBox_1);
-
-
 		
-		comboBox_2 = new JComboBox<String>();
-		
-		comboBox_2.setBounds(170, 132, 401, 27);
-		panel.add(comboBox_2);
-		
-//		setFristForPick();//该方法获取部门下拉框的值
 		setValueForPick();
 		JPanel panel_1 = new JPanel();
 		tabbedPane.addTab(" Mapping ", null, panel_1, null);
@@ -340,66 +328,14 @@ public class ImportApplicationUI extends JFrame {
 		try {
 			setMksConfig();
 			
-			setProjectList();
-			project = comboBox_2.getSelectedItem().toString();
 		} catch (Exception e1) {
 			JOptionPane.showMessageDialog(this, e1.getMessage());
 			e1.printStackTrace();
 		}
-		for (int i = 0; i < tabbedPane.getMouseListeners().length; i++) {
+		for (int i = 0; i <  tabbedPane.getMouseListeners().length; i++) {
 			tabbedPane.removeMouseListener(tabbedPane.getMouseListeners()[i]);
 		}
 	}
-	public void initMksCommand2() {
-		try {
-			String host = ImportApplicationUI.ENVIRONMENTVAR.get(Constants.MKSSI_HOST);
-			if(host==null || host.length()==0) {
-				host = "192.168.6.100";
-			}
-			cmd = new MKSCommand(host, 7001, "admin", "admin", 4, 16);
-//			cmd.getSession();
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(ImportApplicationUI.contentPane, "Can not get a connection!", "Message",
-					JOptionPane.WARNING_MESSAGE);
-			ImportApplicationUI.logger.info("Can not get a connection!");
-			System.exit(0);
-		}
-	}
-
-//	public void setFristForPick() throws Exception {
-//		try {
-//			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-//					.parse(ExcelUtil.class.getClassLoader().getResourceAsStream( "Dept" + FIELD_CONFIG_FILE));
-//			Element root = doc.getDocumentElement();
-//			NodeList deptLists = root.getElementsByTagName("depts");
-//			for (int i = 0; i < deptLists.getLength(); i++) {
-//				Element deptList = (Element) deptLists.item(i);
-//				NodeList  depts = deptList.getElementsByTagName("dept");
-//				for (int j = 0; j < depts.getLength(); j++) {
-//					Element dept = (Element) depts.item(j);
-//					String deptName = dept.getAttribute("name");
-//					Depts.add(deptName);
-//				}
-//			}
-//			DEPT = Depts.get(0);
-//		} catch (Exception e) {
-//			JOptionPane.showMessageDialog(this, "Could Not Parse XML Config, Please Contant Adminstrator!");
-//		}
-////		comboBox_1.setModel(new DefaultComboBoxModel<String>(Depts.toArray(new String[Depts.size()])));
-//		setValueForPick();
-//		try {
-//			excelUtil.parsFieldMapping(DEPT, null);
-//		} catch (Exception e1) {
-//			e1.printStackTrace();
-//		}
-//		comboBox_1.addItemListener(new ItemListener() {
-//			@Override
-//			public void itemStateChanged(ItemEvent e) {
-//				DEPT = comboBox_1.getSelectedItem().toString();
-//				setValueForPick();
-//			}
-//		});
-//	}
 
 	/**
 	 * Description: 解析Excel数据
@@ -470,32 +406,11 @@ public class ImportApplicationUI extends JFrame {
 			if (testSuiteID == null || "".equals(testSuiteID)) {
 				if ( documentTitle == null || "".equals(documentTitle)) {
 					documentTitle = JOptionPane.showInputDialog(
-							"Document ID Is Empty, So Please Enter [ Document Short Title ] to Create It!", documentTitle);
+							"Document ID  Is Empty, So Please Enter [ Document Short Title ] to Create It!", documentTitle);
 					if (documentTitle == null || documentTitle.equals("")) {
 						JOptionPane.showInputDialog(
 								"Document ID and  [ Document Short Title ] Counld Not Be Empty Simultaneously");
 					}		
-				}
-				project=comboBox_2.getSelectedItem().toString();
-				if (project == "Please select a Project" || "Please select a Project".equals(project)) {
-					JOptionPane.showMessageDialog(this, "Please select a Project!");
-					comboBox_2.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent arg0) {
-							project=comboBox_2.getSelectedItem().toString();
-						}
-					});
-					return;
-				} else {
-					boolean projectHas = false;
-					try {
-						projectHas = cmd.checkProject(project);
-					} catch (APIException e) {
-						logger.info(e.getMessage());
-					}
-					if (!projectHas) {
-						JOptionPane.showMessageDialog(this, "Project is not exist, Please Re-Input It!");
-						return;
-					}
 				}
 			} else {
 				try {
@@ -516,16 +431,12 @@ public class ImportApplicationUI extends JFrame {
 				JOptionPane.showConfirmDialog(contentPane, "Counld not prase excel! Please check the excel format!");
 				return;
 			} 
-			// setFocus(newIdx);
 			try {
-//				String deptment = comboBox_1.getSelectedItem().toString();
 				String realImportType = new String(importType);
 				excelUtil.parsFieldMapping(realImportType);
 				tableMapper.setModel(new DefaultTableModel(excelUtil.tableFields,
 						new String[] { "Excel Headers", "Integrity Fields" }));
 				Map<String,String> errorRecord = new HashMap<String,String>();
-
-
 
 				realData = excelUtil.checkExcelData(data, errorRecord, realImportType, cmd);
 				String checkMessage = errorRecord.get("error");
@@ -533,10 +444,6 @@ public class ImportApplicationUI extends JFrame {
 					JOptionPane.showMessageDialog(this, checkMessage);
 					return;
 				}
-//				else {
-//					// 处理校验完数据    创建  token 
-//					TOKEN = UUID.randomUUID().toString().replaceAll("-", "");
-//				}
 			} catch (APIException e) {
 				APIExceptionUtil.getMsg(e);
 			} catch (Exception e){
@@ -552,7 +459,6 @@ public class ImportApplicationUI extends JFrame {
 			r.testSuiteId = testSuiteID;
 			r.importType = importType;
 			r.excelUtil = excelUtil;
-			r.project = comboBox_2.getSelectedItem().toString();
 			r.shortTitle = documentTitle;
 			t = new Thread(r);
 			t.start();// t查询线程,开启
@@ -624,7 +530,6 @@ public class ImportApplicationUI extends JFrame {
 	private JLabelTimerTask j = new JLabelTimerTask();
 	private JLabel label_2;
 	private JLabel label_3;
-	private static JComboBox<String> comboBox_2;
 
 	/**
 	 * 这个方法创建 a timer task 每秒更新一次 the time
@@ -662,10 +567,5 @@ public class ImportApplicationUI extends JFrame {
 		}
 		comboBox.setModel(new DefaultComboBoxModel<String>(result.toArray(new String[result.size()])));
 
-	}
-	public static void setProjectList() throws APIException{
-		List<String> projects = cmd.getProjects(defaultUser);
-		projects.add(0, "Please select a Project");
-		comboBox_2.setModel(new DefaultComboBoxModel<String>(projects.toArray(new String[projects.size()])));
 	}
 }
