@@ -58,8 +58,8 @@ public class MKSCommand {
 		port = _port;
 		user = _user;
 		password = _password;
-//		getSession();
-		createSession();
+		getSession();
+//		createSession();
 	}
 
 	public MKSCommand(String args[]) {
@@ -995,7 +995,7 @@ public class MKSCommand {
 		try{
 			Response res = mksCmdRunner.execute(cmd);
 		}catch(APIException e){
-			ImportApplicationUI.logger.error(APIExceptionUtil.getMsg(e));
+			ImportApplicationUI.logger.error("Create Test Result Failed , Reason：" + APIExceptionUtil.getMsg(e));
 			return false;
 		}
 		return true;
@@ -1030,7 +1030,7 @@ public class MKSCommand {
 		try{
 			Response res = mksCmdRunner.execute(cmd);
 		}catch(APIException e){
-			ImportApplicationUI.logger.error(APIExceptionUtil.getMsg(e));
+			ImportApplicationUI.logger.error("Update Test Result Failed , Reason：" + APIExceptionUtil.getMsg(e));
 			return false;
 		}
 		return true;

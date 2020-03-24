@@ -829,18 +829,15 @@ public class ExcelUtil {
 	public String checkDate(String value) {
 		value = value.trim();
 		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		SimpleDateFormat sdf3 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		Date date = null;
 		try {
 			date = sdf2.parse(value);
-			if (date == null)
-				date = sdf3.parse(value);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		if (date == null) {
 			return "[" + value + "] input error, The date and date you entered is incorrectly formatted."
-					+ "The Correct Format : [yyyy-MM-dd HH:mm:ss] [yyyy/MM/dd HH:mm:ss] \r\n";
+					+ "The Correct Format : [yyyy-MM-dd HH:mm:ss] \r\n";
 		}
 		return null;
 
@@ -890,29 +887,35 @@ public class ExcelUtil {
 							if (sessionId == null || sessionId.equals(""))// 对sessionId做校验
 								allMessage.append("line " + (i + 3) + "Session ID is Empty for Import Test Result! \n");
 							List<String> caseList = sessionInfoRecord.get(sessionId);//当前Session关联的所有Test Case
+							Set<Entry<String, String>> entrySet = map.entrySet();
+							for (Entry<String, String> entry : entrySet) {
+                                String displayKey = entry.getKey();
+                                String key = resultFieldsMap.get(displayKey);
+                                String fieldType = FIELD_TYPE_RECORD.get(key);
+                                String value = entry.getValue();
+                                if(PICK_FIELD_RECORD.containsKey(key)){
+                                    List<String> includes = PICK_FIELD_RECORD.get(key);
+                                    if(!includes.contains(value)) {
+                                        allMessage.append("第" + (i + 3) + "行 ").append(String.format("字段【%s】不正确，合法值范围【%s】\r\n", key, StringUtil.join(",", includes)));
+                                    }
+                                    
+                                }else if("date".equals(fieldType)) {
+                                    String msg = checkDate(value);
+                                    if(msg!=null && msg.length()>0) {
+                                        allMessage.append(msg);
+                                    }else{
+                                    	SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                    	SimpleDateFormat valueSdf = new SimpleDateFormat("MMM d, yyyy h:mm:ss a",Locale.ENGLISH);
+                                    	valueSdf.setTimeZone(TimeZone.getTimeZone( "GMT" ) );
+                                    	Date date = sdf2.parse(value);
+                                    	value = valueSdf.format(date);
+                                    	map.put(displayKey, value);
+                                    }
+                                }
+                            }
 							if (caseList == null) {// 当前Session未查询时，查询Session信息
 								sessionIds = new ArrayList<>();
 								sessionIds.add(sessionId);
-								Set<Entry<String, String>> entrySet = map.entrySet();
-								for (Entry<String, String> entry : entrySet) {
-                                    String displayKey = entry.getKey();
-                                    String key = resultFieldsMap.get(displayKey);
-                                    String fieldType = FIELD_TYPE_RECORD.get(key);
-                                    String value = entry.getValue();
-                                    if(PICK_FIELD_RECORD.containsKey(key)){
-                                        List<String> includes = PICK_FIELD_RECORD.get(key);
-                                        if(!includes.contains(value)) {
-                                            allMessage.append("第" + (i + 3) + "行 ").append(String.format("字段【%s】不正确，合法值范围【%s】\r\n", key, StringUtil.join(",", includes)));
-                                        }
-                                        
-                                    }else if("date".equals(fieldType)) {
-                                        String msg = checkDate(value);
-                                        if(msg!=null && msg.length()>0) {
-                                            allMessage.append(msg);
-                                        }
-                                    }
-                                    
-                                }
 								// 根据sessionID获取session信息
 								Map<String, String> sessionInfo = cmd.getItemByIds(sessionIds, Arrays.asList("ID", "Tests", "State")).get(0);
 								String sysTestsId = sessionInfo.get("Tests");// 从系统中获取到的suite
@@ -967,48 +970,16 @@ public class ExcelUtil {
 	@SuppressWarnings("unchecked")
 	public void startImport(List<Map<String, Object>> data, MKSCommand cmd, String importType, String shortTitle,
 			String project, String testSuiteID) throws Exception {
-		// 删除Token
-		// TestCaseImport.TOKEN = null;
-		// 下面List用于收集操作信息，用于统计
-		List<String> caseUpdate = new ArrayList<String>(), caseCreate = new ArrayList<String>(),
-				stepUpdate = new ArrayList<String>(), stepCreate = new ArrayList<String>();
-		List<String> caseUpdateF = new ArrayList<String>(), caseCreateF = new ArrayList<String>(),
-				stepUpdateF = new ArrayList<String>(), stepCreateF = new ArrayList<String>();
 
 		// int totalSheetNum = data.size();
-		boolean hasStep = false;
 		// 遍历信息
 
-		boolean createTest = false;
-		if (testSuiteID == null || "".equals(testSuiteID)) {
-			Map<String, String> docInfo = new HashMap<String, String>();
-			docInfo.put("Document Short Title", shortTitle);
-			docInfo.put("Project", project);
-			docInfo.put("State", "Open");
-			String docType = DOC_TYPE_MAP.get(importType);
-			if (docType.endsWith("Document"))
-				docInfo.put("Shared Category", "Document");
-			else if ("Test Suite".equals(docType))
-				docInfo.put("Shared Category", "Suite");
-			testSuiteID = cmd.createDocument(docType, docInfo);
-			createTest = true;
-		}
-		Map<String, String> structureRecord = new HashMap<String, String>();
-		// int sheetNum = 1;
-
-		// 得到Project
-		if (!createTest) {
-			project = cmd.getItemByIds(Arrays.asList(testSuiteID), Arrays.asList("Project")).get(0).get("Project");
-		}
-		ImportApplicationUI.logger.info("Project for sheet 1 " + " is : " + project);
-
-		// 将解析后的数据进行导入，因为不涉及结构，因此一条导入不成功，后续仍可导入
-		String parentId = testSuiteID;// 涉及
+		// 导入测试结果
 		if (data.isEmpty()) {
 			return;
 		}
 		int totalCaseNum = data.size();
-		ImportApplicationUI.logger.info("Start Import Excel Data , all Data size is :" + totalCaseNum);
+		ImportApplicationUI.logger.info("Start Import Test Result Data , all Data size is :" + totalCaseNum);
 		for (int index = 0; index < totalCaseNum; index++) {
 			Map<String, Object> testCaseData = data.get(index);
 			logger.info("Now Deal row " + index + " data");
@@ -1017,74 +988,19 @@ public class ExcelUtil {
 			if (testCaseData.containsKey("ID")) {
 				caseId = testCaseData.get("ID").toString();
 			}
-			if (caseId == null || "".equals(caseId)) {
-				ImportApplicationUI.showLogger(" \tStart to Create " + importType);
-			} else {
-				ImportApplicationUI.showLogger(" \tStart to deal " + importType + "  : " + caseId);
-			}
-			Map<String, String> newTestCaseData = new HashMap<>();
-			List<String> newRelatedStepIds = new ArrayList<>();
-			// 1. 先处理Test
-			// Step信息(更新创建或删除)，遍历得到OPERATING_ACTION和EXPECTED_RESULTS信息塞入newTestCaseData中
-//			if (false) {
-////			if (testCaseData.containsKey(TEST_STEP)) {
-//				this.getTestStep(newTestCaseData, newRelatedStepIds, testCaseData, project, cmd, stepCreate,
-//						stepCreateF, stepUpdate, stepUpdateF);
-//				hasStep = true;
-//			}
+			ImportApplicationUI.showLogger(" \tStart to import test result  : " + caseId);
 			// 把Test Result信息获取出来
-			List<Map<String,String>> resultList = null;
+			List<Map<String,String>> resultList = (List<Map<String,String>>)testCaseData.get(TEST_RESULT);
 			if(testCaseData.get(TEST_RESULT) != null ){
-				resultList = (List<Map<String,String>>)testCaseData.get(TEST_RESULT);
 				testCaseData.remove(TEST_RESULT);
 			}
-			// 2. 再处理Test Case的信息(更新或创建，不包括创建)
-			String beforeId = null;// 涉及结构
-			String strucetureVal = null;
-			parentId = testSuiteID;
-//			if (false) {
-////			if (parentStructure) {
-//				strucetureVal = (String) testCaseData.get("Contained By");
-//				beforeId = structureRecord.get(strucetureVal);
-//				if ("C".equals(strucetureVal)) {
-//					parentId = structureRecord.get("P");
-//					if (beforeId == null || "".equals(beforeId)) {
-//						beforeId = "first";
-//					}
-//				}
-//			}
-			if (parentStructure && caseFields.contains("Parent") && parentId == null) {
-				throw new Exception("Need to have a P-level " + importType);
-			}
-			caseId = this.getTestCase(parentId, newTestCaseData, testCaseData, project, cmd, caseId, beforeId,
-					caseCreate, caseCreateF, caseUpdate, caseUpdateF, importType);
-			testCaseData.put("ID", caseId);
-			// 3. 关联Test Case与Test Step
-			if (testCaseData.containsKey(TEST_STEP) && newRelatedStepIds.size() > 0) {
-				this.relatedCaseAndStep(caseId, newRelatedStepIds, cmd);
-			}
-			// 4. 记录beforeID及结构
-			if (parentStructure) {
-				structureRecord.put(strucetureVal, caseId);
-			}
-//			.........................只处理第五条
-			// 5. 导入测试结果
+			//导入测试结果
 			dealTestResults(resultList, cmd, caseId);
 
 			ImportApplicationUI.showProgress(1, 1, caseNum, totalCaseNum);
 		}
 		ImportApplicationUI.showLogger("End to deal " + importType + " : " + testSuiteID);
 		ImportApplicationUI.showLogger("==============================================");
-		ImportApplicationUI.showLogger("Create " + CONTENT_TYPE + ": success (" + caseCreate.size() + "," + caseCreate
-				+ "), failed (" + caseCreateF.size() + ")");
-		ImportApplicationUI.showLogger("Update " + CONTENT_TYPE + ": success (" + caseUpdate.size() + "," + caseUpdate
-				+ "), failed (" + caseUpdateF.size() + "," + caseUpdateF + ")");
-		if (hasStep) {
-			ImportApplicationUI.showLogger("Create Test Step: success (" + stepCreate.size() + "," + stepCreate
-					+ "), failed (" + stepCreateF.size() + ")");
-			ImportApplicationUI.showLogger("Update Test Step: success (" + stepUpdate.size() + "," + stepUpdate
-					+ "), failed (" + stepUpdateF.size() + "," + stepUpdateF + ")");
-		}
 	}
 
 	/**
@@ -1139,13 +1055,13 @@ public class ExcelUtil {
 	 * @param beforeId
 	 * @param caseCreate
 	 * @param caseCreateF
-	 * @param caseUpdate
-	 * @param caseUpdateF
+	 * @param resultUpdate
+	 * @param resultUpdateF
 	 * @throws Exception
 	 */
 	public String getTestCase(String parentId, Map<String, String> newTestCaseData, Map<String, Object> caseMap,
 			String project, MKSCommand cmd, String caseId, String beforeId, List<String> caseCreate,
-			List<String> caseCreateF, List<String> caseUpdate, List<String> caseUpdateF, String importType)
+			List<String> caseCreateF, List<String> resultUpdate, List<String> resultUpdateF, String importType)
 			throws Exception {
 
 		logger.info("Data Of " + CONTENT_TYPE + " ID [" + caseId + "]");
@@ -1237,14 +1153,14 @@ public class ExcelUtil {
 			checkOnlyCreate(newTestCaseData, importType);
 			try {
 				cmd.editissue(caseId, newTestCaseData);
-				caseUpdate.add(caseId);
+				resultUpdate.add(caseId);
 				// 1.更新顺序
 				if (parentStructure && beforeId != null && !"".equals(beforeId)) {
 					cmd.moveContent(parentId, beforeId, caseId);
 				}
 				ImportApplicationUI.showLogger(" \tSuccess to update Test Case : " + caseId);
 			} catch (APIException e) {
-				caseUpdateF.add(caseId);
+				resultUpdateF.add(caseId);
 				ImportApplicationUI.showLogger(" \tFailed to update Test Case : " + caseId);
 				logger.error("Failed to edit test case : " + ExceptionUtil.catchException(e));
 			}

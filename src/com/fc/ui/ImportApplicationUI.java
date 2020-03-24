@@ -213,49 +213,27 @@ public class ImportApplicationUI extends JFrame {
 			}
 		});
 //		comboBox.setSelectedIndex(0);
-		comboBox.setBounds(170, 33, 401, 42);
+		comboBox.setBounds(170, 52, 401, 42);
 		panel.add(comboBox);
 
 		JLabel lblImportType = new JLabel("Import Type   :");
-		lblImportType.setBounds(25, 40, 139, 24);
+		lblImportType.setBounds(25, 59, 139, 24);
 		panel.add(lblImportType);
 
-		JLabel lblTestSuite = new JLabel("Session ID   :");
-		lblTestSuite.setBounds(25, 91, 139, 24);
+		JLabel lblTestSuite = new JLabel("Session ID    :");
+		lblTestSuite.setBounds(25, 128, 139, 24);
 		panel.add(lblTestSuite);
 
 		testSuiteField = new JTextField();
-		testSuiteField.setBounds(170, 90, 401, 27);
+		testSuiteField.setBounds(170, 127, 401, 27);
 		panel.add(testSuiteField);
 		testSuiteField.setColumns(10);
-
-		JLabel lblNewLabel = new JLabel("Project       :");
-		lblNewLabel.setBounds(25, 131, 139, 24);
-		panel.add(lblNewLabel);
 
 		JLabel label = new JLabel("*");
 		label.setForeground(Color.RED);
 		label.setBackground(Color.RED);
 		label.setBounds(599, 47, 54, 15);
 		panel.add(label);
-		//把红色*注释掉,删除部门下拉框
-/*		label_1 = new JLabel("*");
-		label_1.setForeground(Color.RED);
-		label_1.setBackground(Color.RED);
-		label_1.setBounds(154, 47, 10, 15);
-		panel.add(label_1);*/
-		
-		label_2 = new JLabel(
-				"( The project must be fill in while importing new document. Format Example: /BMS/Test1 )");
-		label_2.setVerticalAlignment(SwingConstants.TOP);
-		label_2.setForeground(Color.RED);
-		label_2.setBounds(25, 170, 822, 24);
-		panel.add(label_2);
-
-		label_3 = new JLabel("[First of all, please choose your own department.]");
-		label_3.setForeground(Color.RED);
-		label_3.setBounds(25, 0, 480, 21);
-		panel.add(label_3);
 		
 		setValueForPick();
 		JPanel panel_1 = new JPanel();
@@ -397,36 +375,21 @@ public class ImportApplicationUI extends JFrame {
 			}
 			// 解析Excel
 			testSuiteID = testSuiteField.getText();
-			/*
-			 * if(testSuiteID == null || "".equals(testSuiteID)) {
-			 * JOptionPane.showConfirmDialog(contentPane,
-			 * "Test Suite ID can't Be Empty!"); return; }
-			 */
 			
-			if (testSuiteID == null || "".equals(testSuiteID)) {
-				if ( documentTitle == null || "".equals(documentTitle)) {
-					documentTitle = JOptionPane.showInputDialog(
-							"Document ID  Is Empty, So Please Enter [ Document Short Title ] to Create It!", documentTitle);
-					if (documentTitle == null || documentTitle.equals("")) {
-						JOptionPane.showInputDialog(
-								"Document ID and  [ Document Short Title ] Counld Not Be Empty Simultaneously");
-					}		
-				}
-			} else {
-				try {
-					if (!cmd.docIDIsRight( testSuiteID, ExcelUtil.DOC_TYPE_MAP.get(importType)) ) {// 此处要修改，  判断类型
-//					if (!cmd.docIDIsRight( testSuiteID, "Test Session") ) {// 此处要修改，  判断类型
-						JOptionPane.showConfirmDialog(contentPane,
-								"Your input Test Suite ID is not correctly, Please Re-Input It!");
-						return;
-					}
-				} catch (Exception e1) {
+			try {
+				if (!cmd.docIDIsRight(testSuiteID,  "Test Session")) {// 此处要修改，
+																								// 判断类型
+					// if (!cmd.docIDIsRight( testSuiteID, "Test Session") ) {//
+					// 此处要修改， 判断类型
 					JOptionPane.showConfirmDialog(contentPane,
-							"Your input Test Suite ID is not correctly, Please Re-Input It!");
+							"Your input Test Session ID is not correctly, Please Re-Input It!");
 					return;
 				}
+			} catch (Exception e1) {
+				JOptionPane.showConfirmDialog(contentPane,
+						"Your input Test Session ID is not correctly, Please Re-Input It!");
+				return;
 			}
-
 			if (data == null || data.size() == 0) {
 				JOptionPane.showConfirmDialog(contentPane, "Counld not prase excel! Please check the excel format!");
 				return;
@@ -528,8 +491,6 @@ public class ImportApplicationUI extends JFrame {
 	private MyRunnable r = new MyRunnable();
 	private Thread t = new Thread();// 查询线程
 	private JLabelTimerTask j = new JLabelTimerTask();
-	private JLabel label_2;
-	private JLabel label_3;
 
 	/**
 	 * 这个方法创建 a timer task 每秒更新一次 the time
