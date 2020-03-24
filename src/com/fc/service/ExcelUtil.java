@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -17,6 +18,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.util.StringUtil;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -32,7 +34,9 @@ public class ExcelUtil {
 
 	private static List<String> caseFields = new ArrayList<>();
 	private static List<String> stepFields = new ArrayList<>();
-	private static List<String> resultFields = new ArrayList<>();// Test ResultHeader信息
+	private static List<String> resultFields = new ArrayList<>();// Test ResultHeader信息,显示名称
+	private static List<String> resultFieldsInter = new ArrayList<>();// Test ResultHeader信息,内部名称
+//	内部名称（key  显示名称， value  内部名称）
 	private static Map<String,String> resultFieldsMap = new HashMap<>();
 	private static Map<String, List<String>> importHeadersMap = new HashMap<>();// 根据导入模板保存
 																				// field
@@ -105,7 +109,6 @@ public class ExcelUtil {
 	 * @throws Exception
 	 */
 	public List<String> parsFieldMapping(String selectImportType) throws Exception {
-
 		ExcelUtil.logger.info("start to parse xml : " + FIELD_CONFIG_FILE);
 		Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 				.parse(ExcelUtil.class.getClassLoader().getResourceAsStream(FIELD_CONFIG_FILE));
@@ -153,6 +156,7 @@ public class ExcelUtil {
 									stepFields.add(name);
 								} else if (TEST_RESULT.equals(type) && !resultFields.contains(name)) {
 									resultFields.add(name);
+									resultFieldsInter.add(field);
 									resultFieldsMap.put(name, field);
 								} else if (!TEST_STEP.equals(type) && !TEST_RESULT.equals(type)
 										&& !caseFields.contains(name)) {
@@ -677,7 +681,7 @@ public class ExcelUtil {
 
 	/**
 	 * Description 校验下拉框输入
-	 * 
+	 * 判断
 	 * @return
 	 * @throws APIException
 	 */
@@ -686,9 +690,7 @@ public class ExcelUtil {
 			return null;
 		}
 		List<String> valList = PICK_FIELD_RECORD.get(field);
-		if (valList == null) {
-			valList = cmd.getAllPickValues(field);
-		}
+		
 		if (valList == null) {
 			return "Column [" + (header != null ? header : field) + "] has no valid option value!";
 		} 
@@ -792,20 +794,15 @@ public class ExcelUtil {
 	 */
 	public String checkFieldValue(String header, String field, String value, MKSCommand cmd) throws APIException {
 		String fieldType = FIELD_TYPE_RECORD.get(field);
-
 		if ("pick".equalsIgnoreCase(fieldType)) {
 			return checkPickVal(header, field, value, cmd);
-		}
-		if ("Category".equalsIgnoreCase(field)) {
+		}else if ("Category".equalsIgnoreCase(field)) {
 			return checkCategory(value);
-		}
-		if ("Date".equalsIgnoreCase(fieldType)) {
+		}else if ("Date".equalsIgnoreCase(fieldType)) {
 			return checkDate(value);
-		}
-		if ("User".equalsIgnoreCase(fieldType)) {
+		}else if ("User".equalsIgnoreCase(fieldType)) {
 			return checkUserVal(value, field);
-		}
-		if ("relationship".equalsIgnoreCase(fieldType)) {
+		}else if ("relationship".equalsIgnoreCase(fieldType)) {
 			return checkRelationshipVal(value); // 检查关联的ID是不是带 []
 		}
 		return null;
@@ -843,7 +840,7 @@ public class ExcelUtil {
 		}
 		if (date == null) {
 			return "[" + value + "] input error, The date and date you entered is incorrectly formatted."
-					+ "The Correct Format : [yyyy-MM-dd HH:mm:ss] [yyyy/MM/dd HH:mm:ss] ";
+					+ "The Correct Format : [yyyy-MM-dd HH:mm:ss] [yyyy/MM/dd HH:mm:ss] \r\n";
 		}
 		return null;
 
@@ -858,219 +855,37 @@ public class ExcelUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	@SuppressWarnings({ "unchecked", "static-access" })
+	@SuppressWarnings({ "unchecked"})
 	public List<Map<String, Object>> checkExcelData(List<Map<String, Object>> data, Map<String, String> errorRecord,
 			String importType, MKSCommand cmd) throws Exception {
 		Map<String, Map<String, String>> headerConfig = headerConfigs.get(importType);
 		List<Map<String, Object>> resultData = new ArrayList<Map<String, Object>>();
 		ImportApplicationUI.logger.info("Begin Deal Excel Data ,Data size is :" + data.size());
-		if (FIELD_TYPE_RECORD == null || FIELD_TYPE_RECORD.isEmpty()) {
-			/** 查询Field ，为Field校验做准备 */
-			List<String> importFields = new ArrayList<String>();
-			for (String header : caseFields) {
-				Map<String, String> fieldConfig = headerConfig.get(header);
-				if (fieldConfig != null) {
-					String field = fieldConfig.get("field");
-					if (!"-".equals(field)) {
-						importFields.add(field);
-					}
-				}
-			}
-			FIELD_TYPE_RECORD.putAll(cmd.getAllFieldType(importFields, PICK_FIELD_RECORD));
-		}
-		if (CURRENT_CATEGORIES.isEmpty()) {
-
-			parseCurrentCategories(DOC_TYPE_MAP.get(importType));
-		}
-		this.USER_FULLNAME_RECORD.addAll(cmd.getAllUserIdAndName()); // 查询出所有的user的name
-																		// 和 Id
-																		// 然后存放在
-																		// USER_FULLNAME_RECORD
+//		放所有类型（verdict 需要单独判断）
+		FIELD_TYPE_RECORD.putAll(cmd.getTestVerdict(PICK_FIELD_RECORD));//查询测试结论
+        FIELD_TYPE_RECORD.putAll(cmd.getAllResultFields(resultFieldsInter, PICK_FIELD_RECORD));//测试结果字段
+        
 		Map<String, Object> newMap = null;
 		StringBuffer allMessage = new StringBuffer();
 		List<String> sessionIds = null;
 		Map<String, List<String>> sessionInfoRecord = new HashMap<>();// 只获取系统当前Session的信息。
 		for (int i = 0; i < data.size(); i++) {
 			int j = 1;// test result循环下标  每行重置 j
-			boolean hasError = false;// 校验出错误
-			StringBuffer errorMessage = new StringBuffer();
+//			boolean hasError = false;// 校验出错误
+//			StringBuffer errorMessage = new StringBuffer();
 			Map<String, Object> rowMap = data.get(i);
 			String caseID = (String) rowMap.get(TEST_CASE_ID);
 			newMap = new HashMap<String, Object>();
 			if (caseID != null && !"".equals(caseID)) {
 				newMap.put("ID", caseID);
 			}
-			for (String header : caseFields) {
-				Map<String, String> fieldConfig = headerConfig.get(header);
-				if (fieldConfig != null) {
-					String field = fieldConfig.get("field");
-					String value = (String) rowMap.get(header);
-					if (!"-".equals(field) && value != null && !"".equals(value)) {
-						String message = checkFieldValue(header, field, value, cmd);// 校验Test
-																					// //
-																					// Case字段值
-						if (message == null || "".equals(message)) {
-							// 在此已经判断用户是否存在 ， 若存在 IS_USER 标识为 ture , 若不存在为 false
-							if (IS_USER) {
-								// list.get(p).toString()
-								// 判断导入的user类型的数据格式是不是 : 用户(ID) 是的话截取 ()内ID 。
-								int leftIndex = -1;
-								int rightIndex = -1;
-								boolean endFormat = false;
-								if (value.indexOf("(") > -1) {
-									leftIndex = value.indexOf("(");
-								} else if (value.indexOf("（") > -1) {
-									leftIndex = value.indexOf("（");
-								}
-								if (value.indexOf(")") > -1) {
-									rightIndex = value.indexOf(")");
-									endFormat = value.endsWith(")");
-								} else if (value.indexOf("）") > -1) {
-									rightIndex = value.indexOf("）");
-									endFormat = value.endsWith("）");
-								}
-								if (leftIndex > 0 && rightIndex > 0 && endFormat) {
-									String userId = value.substring(leftIndex + 1, rightIndex);
-									if (userId.matches("[G][W]\\d{0,9}") || userId.matches("[g][w]\\d{0,9}")
-											|| userId.matches("[G][w]\\d{0,9}") || userId.matches("[g][W]\\d{0,9}")) {
-										// 判断里面ID格式是不是 GW + 数字 是的话在之前查询的数据获取值
-										newMap.put(field, userId);
-									}
-
-								} else if (value.matches("[G][W]\\d{0,9}") || value.matches("[g][w]\\d{0,9}")
-										|| value.matches("[G][w]\\d{0,9}") || value.matches("[g][W]\\d{0,9}")) { // 判断如果不是用户(ID)的格式
-									newMap.put(field, value);
-								} else {
-									errorMessage.append(" Field [" + field
-											+ "]  data format should be \"name(Login ID)\" or \"Login ID\" \n");
-									hasError = true;
-								}
-								IS_USER = false;
-							} else if (RELATIONSHIP_MISTAKEN) { // 如果是Relationship类型的字段，并且数字前面带[]
-																// ，就将中括号去掉
-								value = value.substring(1, value.length() - 1);//
-								newMap.put(field, value);
-								RELATIONSHIP_MISTAKEN = false;
-							} else {
-								newMap.put(field, value);
-							}
-						} else {
-							errorMessage.append("line " + (i + 3) + ": ").append(message).append("\n");
-							hasError = true;
-						}
-					}
-				}
-			}
-			if (hasError) {
-				allMessage.append(errorMessage);
-				continue;
-			}
-			if (rowMap.containsKey(TEST_STEP)) {// Test Case包含有 Test Step信息
-				Object steps = rowMap.get(TEST_STEP);
-				if (steps instanceof List) {
-					List<String> importStepFields = importHeadersMap.get(importType + "-stepFields");
-					List<Map<String, String>> currentSteps = (List<Map<String, String>>) steps;
-					if (!currentSteps.isEmpty()) {// Test Case包含有 Test Step信息
-						List<Map<String, String>> stepList = new ArrayList<Map<String, String>>();
-						Map<String, Map<String, String>> mapRecord = new HashMap<String, Map<String, String>>();
-						Map<String, String> stepMap = null;
-						String parentRecord = null;
-						for (int index = 0; index < currentSteps.size(); index++) {// 循环处理Test
-																					// Step信息
-							Map<String, String> map = currentSteps.get(index);
-							String acturalField = null;
-							boolean existMap = false;
-							String parentField = map.get("ParentField");
-							map.remove("ParenetField");
-							StringBuffer acturalFieldVal = null;
-							boolean hasVal = false;
-							for (String header : importStepFields) {
-								if (map.containsKey(header)) {
-									Map<String, String> fieldConfig = headerConfig.get(header);
-									if (fieldConfig != null) {
-										String field = fieldConfig.get("field");
-										String value = (String) map.get(header);
-										boolean needFieldSet = true;
-										if (fieldConfig.containsKey(NEED_FIELD_SET)) {
-											needFieldSet = Boolean.valueOf(fieldConfig.get(NEED_FIELD_SET));
-										}
-										if ("ID".equals(field) || "Test Procedure".equals(field)) {
-											if (value != null && !"".equals(value)) {
-												if (mapRecord.get(value) != null) {
-													stepMap = mapRecord.get(value);
-													existMap = true;
-												} else {
-													stepMap = new HashMap<String, String>();
-													mapRecord.put(value, stepMap);
-												}
-											} else {
-												Map<String, String> tempMap = mapRecord.get(value + "_" + index);
-												if (tempMap == null && parentRecord != null
-														&& !parentField.equals(parentRecord)) {
-													tempMap = mapRecord.get(value + "_" + (index - 1));
-												}
-												if (tempMap != null) {
-													if ((parentField != null && !"".equals(parentField)
-															&& !tempMap.containsKey(parentField))
-															|| (parentField == null || !"".equals(parentField)
-																	&& !tempMap.containsKey(field))) {
-														stepMap = tempMap;
-														existMap = true;
-													}
-												} else {
-													stepMap = new HashMap<String, String>();
-													mapRecord.put(value + "_" + index, stepMap);
-												}
-											}
-										}
-										if (fieldConfig.containsKey(PARENT_FIELD) && !header.equals("Test Procedure")) {
-											if (acturalField == null) {
-												acturalField = fieldConfig.get(PARENT_FIELD);
-												if (!acturalField.equals(parentField)) {
-													acturalField = parentField;
-												}
-												acturalFieldVal = new StringBuffer();
-											}
-											if (needFieldSet)
-												acturalFieldVal.append(field).append(": ");
-											acturalFieldVal.append(value);
-											if (!value.endsWith("\n")) // 如果拼接字符串不是以\n结尾，拼接
-												acturalFieldVal.append("\n");
-										} else {
-											if (value != null && !"".equals(value)) {
-												stepMap.put(field, value);// 存放非拼接字段
-											}
-										}
-										if (value != null && !"".equals(value))
-											hasVal = true;
-									}
-								}
-							}
-							if (acturalFieldVal != null) {// 实际存放Step值。数据不为空
-								stepMap.put(acturalField, acturalFieldVal.toString());
-							}
-							if (!existMap && hasVal)
-								stepList.add(stepMap);
-							parentRecord = parentField;
-						}
-						newMap.put(TEST_STEP, stepList);
-					}
-				} else if (steps instanceof String) {
-					String stepIds = (String) steps;
-					if (stepIds != null && !"".equals(stepIds)) {
-						stepIds = stepIds.replaceAll(";", ",").replaceAll("，", ",");
-						newMap.put("Test Steps", stepIds);
-					}
-				}
-			}
-			// 02/11
+			
 			if (rowMap.containsKey(TEST_RESULT)) {// Test Case包含有 Test Result信息
 				Object results = rowMap.get(TEST_RESULT);
 				if (results instanceof List) {
 					List<Map<String, String>> currentResults = (List<Map<String, String>>) results;
 					if (!currentResults.isEmpty()) {
-						for (Map<String, String> map : currentResults) {// 循环校验Test
-																		// Result信息
+						for (Map<String, String> map : currentResults) {// 循环校验Test Result信息
 							String sessionId = map.get(SESSION_ID);
 							if (sessionId == null || sessionId.equals(""))// 对sessionId做校验
 								allMessage.append("line " + (i + 3) + "Session ID is Empty for Import Test Result! \n");
@@ -1078,15 +893,33 @@ public class ExcelUtil {
 							if (caseList == null) {// 当前Session未查询时，查询Session信息
 								sessionIds = new ArrayList<>();
 								sessionIds.add(sessionId);
+								Set<Entry<String, String>> entrySet = map.entrySet();
+								for (Entry<String, String> entry : entrySet) {
+                                    String displayKey = entry.getKey();
+                                    String key = resultFieldsMap.get(displayKey);
+                                    String fieldType = FIELD_TYPE_RECORD.get(key);
+                                    String value = entry.getValue();
+                                    if(PICK_FIELD_RECORD.containsKey(key)){
+                                        List<String> includes = PICK_FIELD_RECORD.get(key);
+                                        if(!includes.contains(value)) {
+                                            allMessage.append("第" + (i + 3) + "行 ").append(String.format("字段【%s】不正确，合法值范围【%s】\r\n", key, StringUtil.join(",", includes)));
+                                        }
+                                        
+                                    }else if("date".equals(fieldType)) {
+                                        String msg = checkDate(value);
+                                        if(msg!=null && msg.length()>0) {
+                                            allMessage.append(msg);
+                                        }
+                                    }
+                                    
+                                }
 								// 根据sessionID获取session信息
-								Map<String, String> sessionInfo = cmd
-										.getItemByIds(sessionIds, Arrays.asList("ID", "Tests", "State")).get(0);
+								Map<String, String> sessionInfo = cmd.getItemByIds(sessionIds, Arrays.asList("ID", "Tests", "State")).get(0);
 								String sysTestsId = sessionInfo.get("Tests");// 从系统中获取到的suite
 								caseList = new ArrayList<>();
 								if (sysTestsId != null && !"".equals(sysTestsId)) {
 									String[] sysTestsIdArr = sysTestsId.split(",");
-									List<Map<String, String>> testsList = cmd.findItemsByIDs(Arrays.asList(sysTestsIdArr),
-											Arrays.asList("ID,Type"));
+									List<Map<String, String>> testsList = cmd.findItemsByIDs(Arrays.asList(sysTestsIdArr), Arrays.asList("ID,Type"));
 									for (Map<String, String> testMap : testsList) {
 										String type = testMap.get("Type");
 										String ID = testMap.get("ID");
@@ -1101,15 +934,10 @@ public class ExcelUtil {
 									}
 								}
 								sessionInfoRecord.put(sessionId, caseList);
-							}
-							if (caseList != null) {
-								// 02/18
+							} else if (caseList != null) {
 								if (!caseList.contains(caseID)) {
-									allMessage.append("第" + (i + 3) + "行" + "，" + "第" + j + "轮"
-											+ "Test Session与当前测试用例未建立关联关系！ \n");
+									allMessage.append("第" + (i + 3) + "行" + "，" + "Test Session与当前测试用例未建立关联关系！ \n");
 								}
-							} else {
-								allMessage.append("第" + (i + 3) + "行" + "，" + "第" + j + "轮" + "Test Session ID不正确，未查询到对应信息！ \n");
 							}
 						}
 						newMap.put(TEST_RESULT, currentResults);
@@ -1119,8 +947,7 @@ public class ExcelUtil {
 			}
 			resultData.add(newMap);
 		}
-		allMessage.append(cmd.checkIssueType(sessionIds, TEST_SESSION, SESSIONN_STATE));// 校验test
-																						// session的状态
+		allMessage.append(cmd.checkIssueType(sessionIds, TEST_SESSION, SESSIONN_STATE));// 校验test session的状态
 		errorRecord.put("error", allMessage.toString());
 		ImportApplicationUI.logger.info("End Deal Excel Data , all Data size is :" + resultData.size());
 		return resultData;
@@ -1199,12 +1026,12 @@ public class ExcelUtil {
 			List<String> newRelatedStepIds = new ArrayList<>();
 			// 1. 先处理Test
 			// Step信息(更新创建或删除)，遍历得到OPERATING_ACTION和EXPECTED_RESULTS信息塞入newTestCaseData中
-			if (false) {
-//			if (testCaseData.containsKey(TEST_STEP)) {
-				this.getTestStep(newTestCaseData, newRelatedStepIds, testCaseData, project, cmd, stepCreate,
-						stepCreateF, stepUpdate, stepUpdateF);
-				hasStep = true;
-			}
+//			if (false) {
+////			if (testCaseData.containsKey(TEST_STEP)) {
+//				this.getTestStep(newTestCaseData, newRelatedStepIds, testCaseData, project, cmd, stepCreate,
+//						stepCreateF, stepUpdate, stepUpdateF);
+//				hasStep = true;
+//			}
 			// 把Test Result信息获取出来
 			List<Map<String,String>> resultList = null;
 			if(testCaseData.get(TEST_RESULT) != null ){
@@ -1240,6 +1067,7 @@ public class ExcelUtil {
 			if (parentStructure) {
 				structureRecord.put(strucetureVal, caseId);
 			}
+//			.........................只处理第五条
 			// 5. 导入测试结果
 			dealTestResults(resultList, cmd, caseId);
 
