@@ -88,8 +88,8 @@ public class ExcelUtil {
 	private Map<String, CellRangeAddress> cellRangeMap = new HashMap<String, CellRangeAddress>();
 
 	private static final List<String> USER_FULLNAME_RECORD = new ArrayList<String>();
-	private static boolean IS_USER = false;
-	private static boolean RELATIONSHIP_MISTAKEN = false;
+//	private static boolean IS_USER = false;
+//	private static boolean RELATIONSHIP_MISTAKEN = false;
 	public static final Logger logger = Logger.getLogger(ExcelUtil.class);
 	private boolean parentStructure = false;// 是否有父子级结构
 
@@ -748,7 +748,7 @@ public class ExcelUtil {
 			formatValue = value;
 		}
 		if (USER_FULLNAME_RECORD.contains(formatValue.toLowerCase())) {
-			IS_USER = true; // 若用户存在修改标识 ， 往下执行好判断
+//			IS_USER = true; // 若用户存在修改标识 ， 往下执行好判断
 			return "";
 		}
 		return "Column [" + field + "] input value [" + value + "] is not exist";
@@ -760,9 +760,9 @@ public class ExcelUtil {
 	 * @return
 	 */
 	public String checkRelationshipVal(String value) {
-		if (value.startsWith("[") && value.endsWith("]")) {
-			RELATIONSHIP_MISTAKEN = true;
-		}
+//		if (value.startsWith("[") && value.endsWith("]")) {
+//			RELATIONSHIP_MISTAKEN = true;
+//		}
 		return "";
 	}
 
@@ -858,7 +858,7 @@ public class ExcelUtil {
 	@SuppressWarnings({ "unchecked"})
 	public List<Map<String, Object>> checkExcelData(List<Map<String, Object>> data, Map<String, String> errorRecord,
 			String importType, MKSCommand cmd) throws Exception {
-		Map<String, Map<String, String>> headerConfig = headerConfigs.get(importType);
+//		Map<String, Map<String, String>> headerConfig = headerConfigs.get(importType);
 		List<Map<String, Object>> resultData = new ArrayList<Map<String, Object>>();
 		ImportApplicationUI.logger.info("Begin Deal Excel Data ,Data size is :" + data.size());
 //		放所有类型（verdict 需要单独判断）
@@ -870,7 +870,7 @@ public class ExcelUtil {
 		List<String> sessionIds = null;
 		Map<String, List<String>> sessionInfoRecord = new HashMap<>();// 只获取系统当前Session的信息。
 		for (int i = 0; i < data.size(); i++) {
-			int j = 1;// test result循环下标  每行重置 j
+//			int j = 1;// test result循环下标  每行重置 j
 //			boolean hasError = false;// 校验出错误
 //			StringBuffer errorMessage = new StringBuffer();
 			Map<String, Object> rowMap = data.get(i);
@@ -942,7 +942,7 @@ public class ExcelUtil {
 						}
 						newMap.put(TEST_RESULT, currentResults);
 					}
-					j++;
+//					j++;
 				}
 			}
 			resultData.add(newMap);
@@ -1042,17 +1042,17 @@ public class ExcelUtil {
 			String beforeId = null;// 涉及结构
 			String strucetureVal = null;
 			parentId = testSuiteID;
-			if (false) {
-//			if (parentStructure) {
-				strucetureVal = (String) testCaseData.get("Contained By");
-				beforeId = structureRecord.get(strucetureVal);
-				if ("C".equals(strucetureVal)) {
-					parentId = structureRecord.get("P");
-					if (beforeId == null || "".equals(beforeId)) {
-						beforeId = "first";
-					}
-				}
-			}
+//			if (false) {
+////			if (parentStructure) {
+//				strucetureVal = (String) testCaseData.get("Contained By");
+//				beforeId = structureRecord.get(strucetureVal);
+//				if ("C".equals(strucetureVal)) {
+//					parentId = structureRecord.get("P");
+//					if (beforeId == null || "".equals(beforeId)) {
+//						beforeId = "first";
+//					}
+//				}
+//			}
 			if (parentStructure && caseFields.contains("Parent") && parentId == null) {
 				throw new Exception("Need to have a P-level " + importType);
 			}
