@@ -26,6 +26,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.fc.ui.ImportApplicationUI;
+import com.fc.util.APIExceptionUtil;
 import com.fc.util.ExceptionUtil;
 import com.fc.util.MKSCommand;
 import com.mks.api.response.APIException;
@@ -906,7 +907,6 @@ public class ExcelUtil {
                                     }else{
                                     	SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                                     	SimpleDateFormat valueSdf = new SimpleDateFormat("MMM d, yyyy h:mm:ss a",Locale.ENGLISH);
-                                    	valueSdf.setTimeZone(TimeZone.getTimeZone( "GMT" ) );
                                     	Date date = sdf2.parse(value);
                                     	value = valueSdf.format(date);
                                     	map.put(displayKey, value);
@@ -1288,9 +1288,17 @@ public class ExcelUtil {
 					}
 				}
 				if (resultRecord.get(sessionId) == null){//如果查到系统当前的test result为空，则把excel模板中读取到的test result数据导入 02/19
-					cmd.createResult(sessionId,verdict,annotation,caseID,resultMap);
+					if(cmd.createResult(sessionId,verdict,annotation,caseID,resultMap)){
+						ImportApplicationUI.showLogger("Create Test Result Success! ");
+					}else{
+						ImportApplicationUI.showLogger("Create Test Result Failed !");
+					}
 				}else{//更新系统当前的test result
-					cmd.editResult(sessionId,verdict,annotation,caseID,resultMap);
+					if(cmd.editResult(sessionId,verdict,annotation,caseID,resultMap)){
+						ImportApplicationUI.showLogger("Update Test Result Success! ");
+					}else{
+						ImportApplicationUI.showLogger("Update Test Result Failed !");
+					}
 				}
 			}
 		}
