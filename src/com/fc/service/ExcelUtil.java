@@ -1281,7 +1281,7 @@ public class ExcelUtil {
 				for(String header : resultFields) {
 					if(!SESSION_ID.equals(header) && !VERDICT.equals(header) && !ANNOTATION.equals(header)){
 						String field = resultFieldsMap.get(header);
-						String value = result.get(field);
+						String value = result.get(header);
 						if(value != null){
 							resultMap.put(field, value);
 						}
