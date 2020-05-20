@@ -12,6 +12,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFDataFormat;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -400,8 +402,19 @@ public class ExcelUtil {
 			value = String.valueOf(cell.getCellFormula());
 			break;
 		case Cell.CELL_TYPE_NUMERIC:
-			value = String.valueOf(Math.round(cell.getNumericCellValue()));// 当前项目
-																			// 没有Number类型，只有String。取整
+			if (HSSFDateUtil.isCellDateFormatted(cell)) {// 处理日期格式、时间格式
+				SimpleDateFormat sdf = null;
+				if (cell.getCellStyle().getDataFormat() == HSSFDataFormat
+						.getBuiltinFormat("h:mm")) {
+					sdf = new SimpleDateFormat("HH:mm:ss");
+				} else {// 日期
+					sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				}
+				Date date = cell.getDateCellValue();
+				value = sdf.format(date);
+			} else{
+				value = String.valueOf(Math.round(cell.getNumericCellValue()));// 当前项目
+			}
 			break;
 		case Cell.CELL_TYPE_BOOLEAN:
 			value = String.valueOf(cell.getBooleanCellValue());
@@ -900,7 +913,8 @@ public class ExcelUtil {
                                         allMessage.append("第" + (i + 3) + "行 ").append(String.format("字段【%s】不正确，合法值范围【%s】\r\n", key, StringUtil.join(",", includes)));
                                     }
                                     
-                                }else if("date".equals(fieldType)) {
+                                } else if("date".equals(fieldType)) {
+//                                } else if(key.indexOf("Date") >-1) {
                                     String msg = checkDate(value);
                                     if(msg!=null && msg.length()>0) {
                                         allMessage.append(msg);

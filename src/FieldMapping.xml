@@ -30,7 +30,7 @@
 		<excelField  name="SW Version"  			type="Test Result"  		field="SW Version"			/>
 		<excelField  name="HW Version"  			type="Test Result"  		field="HW Result Version"			/>
 		<excelField  name="Tester"  				type="Test Result"  		field="Tester"				/>
-		<excelField  name="Test Date"  				type="Test Result"  		field="Actual End Date"			/>
+		<excelField  name="Test Date"  				type="Test Result"  		field="Test Date"			/>
 		
 		<excelField  name="System Engineer"  						type="Test Case"  		field="System Engineer"							onlyCreate="false"  overRide="false"  titleColor="B"/>
 		<excelField  name="System Engineer Review Result"  			type="Test Case"  		field="System Engineer Review Result"			onlyCreate="false"  overRide="true"/>
@@ -74,7 +74,7 @@
 		<excelField  name="SW Version"  			type="Test Result"  		field="SW Version"			/>
 		<excelField  name="HW Version"  			type="Test Result"  		field="HW Result Version"			/>
 		<excelField  name="Tester"  				type="Test Result"  		field="Tester"				/>
-		<excelField  name="Test Date"  				type="Test Result"  		field="Actual End Date"			/>
+		<excelField  name="Test Date"  				type="Test Result"  		field="Test Date"			/>
 
 		<excelField  name="System Engineer"  						type="Test Case"  		field="System Engineer"							onlyCreate="false"  overRide="false"  titleColor="B"/>
 		<excelField  name="System Engineer Review Result"  			type="Test Case"  		field="System Engineer Review Result"			onlyCreate="false"  overRide="true"/>
@@ -116,7 +116,7 @@
 		<excelField  name="SW Version"  			type="Test Result"  		field="SW Version"			/>
 		<excelField  name="HW Version"  			type="Test Result"  		field="HW Result Version"			/>
 		<excelField  name="Tester"  				type="Test Result"  		field="Tester"				/>
-		<excelField  name="Test Date"  				type="Test Result"  		field="Actual End Date"			/>
+		<excelField  name="Test Date"  				type="Test Result"  		field="Test Date"			/>
 		
 		<excelField  name="System Engineer"  						type="Test Case"  		field="System Engineer"							onlyCreate="false"  overRide="false"  titleColor="B"/>
 		<excelField  name="System Engineer Review Result"  			type="Test Case"  		field="System Engineer Review Result"			onlyCreate="false"  overRide="true"/>
@@ -163,7 +163,7 @@
 		<excelField  name="SW Version"  			type="Test Result"  		field="SW Version"			/>
 		<excelField  name="HW Version"  			type="Test Result"  		field="HW Result Version"			/>
 		<excelField  name="Tester"  				type="Test Result"  		field="Tester"				/>
-		<excelField  name="Test Date"  				type="Test Result"  		field="Actual End Date"			/>
+		<excelField  name="Test Date"  				type="Test Result"  		field="Test Date"			/>
 
 		<excelField  name="System Engineer"  						type="Test Case"  		field="System Engineer"							onlyCreate="false"  overRide="false"	titleColor="B"/>
 		<excelField  name="System Engineer Review Result"  			type="Test Case"  		field="System Engineer Review Result"			onlyCreate="false"  overRide="true"/>
@@ -210,7 +210,7 @@
 		<excelField  name="SW Version"  			type="Test Result"  		field="SW Version"			/>
 		<excelField  name="HW Version"  			type="Test Result"  		field="HW Result Version"			/>
 		<excelField  name="Tester"  				type="Test Result"  		field="Tester"				/>
-		<excelField  name="Test Date"  				type="Test Result"  		field="Actual End Date"			/>
+		<excelField  name="Test Date"  				type="Test Result"  		field="Test Date"			/>
 		
 		<excelField  name="System Engineer"  						type="Test Case"  		field="System Engineer"							onlyCreate="false"  overRide="false"	titleColor="B"/>
 		<excelField  name="System Engineer Review Result"  			type="Test Case"  		field="System Engineer Review Result"			onlyCreate="false"  overRide="true"/>
@@ -252,7 +252,7 @@
 		<excelField  name="SW Version"  			type="Test Result"  		field="SW Version"			/>
 		<excelField  name="HW Version"  			type="Test Result"  		field="HW Result Version"			/>
 		<excelField  name="Tester"  				type="Test Result"  		field="Tester"				/>
-		<excelField  name="Test Date"  				type="Test Result"  		field="Actual End Date"			/>
+		<excelField  name="Test Date"  				type="Test Result"  		field="Test Date"			/>
 		
 		<excelField  name="System Engineer"  						type="Test Case"  		field="System Engineer"							onlyCreate="false"  overRide="false"  titleColor="B"/>
 		<excelField  name="System Engineer Review Result"  			type="Test Case"  		field="System Engineer Review Result"			onlyCreate="false"  overRide="true"/>
@@ -294,7 +294,7 @@
 		<excelField  name="SW Version"  			type="Test Result"  		field="SW Version"			/>
 		<excelField  name="HW Version"  			type="Test Result"  		field="HW Result Version"			/>
 		<excelField  name="Tester"  				type="Test Result"  		field="Tester"				/>
-		<excelField  name="Test Date"  				type="Test Result"  		field="Actual End Date"			/>
+		<excelField  name="Test Date"  				type="Test Result"  		field="Test Date"			/>
 		
 		<excelField  name="System Engineer"  						type="Test Case"  		field="System Engineer"							onlyCreate="false"  overRide="false"  titleColor="B"/>
 		<excelField  name="System Engineer Review Result"  			type="Test Case"  		field="System Engineer Review Result"			onlyCreate="false"  overRide="true"/>

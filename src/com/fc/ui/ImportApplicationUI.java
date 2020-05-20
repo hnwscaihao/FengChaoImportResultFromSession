@@ -99,7 +99,8 @@ public class ImportApplicationUI extends JFrame {
 			String host = ImportApplicationUI.ENVIRONMENTVAR.get(Constants.MKSSI_HOST);
 			if(host==null || host.length()==0) {
 //				host = "10.101.13.44";
-				host = "192.168.6.130";
+//				host = "192.168.229.133";//本地
+				host = "10.45.31.10";
 			}
 			String portStr = ENVIRONMENTVAR.get(Constants.MKSSI_PORT);
 			Integer port = portStr!=null && !"".equals(portStr)? Integer.valueOf(portStr) : 7001;
@@ -107,7 +108,8 @@ public class ImportApplicationUI extends JFrame {
 			String pwd = "";
 			if(defaultUser == null || "".equals(defaultUser) ){
 				defaultUser = "admin";
-				pwd = "admin";
+//				pwd = "admin";
+				pwd = "Svolt@123";
 			}
 			cmd = new MKSCommand(host, port, defaultUser, pwd, 4, 16);
 		} catch (Exception e) {
